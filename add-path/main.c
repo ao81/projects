@@ -18,8 +18,9 @@ void clear_input_buffer() {
 }
 
 // 入力待ち状態にする関数
-void pause_continue() {
+void pause_continue(int type) {
 	printf("\nEnterを押してメニューに戻ります。... ");
+	if (type == 1) clear_input_buffer();
 	getchar();
 }
 
@@ -68,20 +69,20 @@ void add_path() {
 
 	if (strlen(newPath) == 0) {
 		printf("\nキャンセルしました。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
 	FILE *fp = fopen("paths.txt", "a"); // ファイルを追記モードで開く
 	if (!fp) {
 		printf("ファイルを開けません。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 	fprintf(fp, "%s\n", newPath);
 	fclose(fp);
 	printf("\n[ %s ] を保存しました。\n", newPath);
-	pause_continue();
+	pause_continue(0);
 }
 
 void list_and_delete_paths() {
@@ -92,7 +93,7 @@ void list_and_delete_paths() {
 	int pathCount = load_paths(savedPaths);
 	if (pathCount == 0) {
 		printf("まだパスは保存されていません。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
@@ -107,7 +108,7 @@ void list_and_delete_paths() {
 	char deleteInput[16];
 	if (!fgets(deleteInput, sizeof(deleteInput), stdin)) {
 		printf("\n入力エラーです。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
@@ -115,14 +116,14 @@ void list_and_delete_paths() {
 
 	if (strlen(deleteInput) == 0) {
 		printf("\nキャンセルしました。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
 	int deleteIndex = atoi(deleteInput);
 	if (deleteIndex <= 0 || deleteIndex > pathCount) {
 		printf("\n無効な値です。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
@@ -135,7 +136,7 @@ void list_and_delete_paths() {
 	save_paths(savedPaths, pathCount - 1);
 
 	printf("\n[ %s ] を削除しました。\n", deletedPath);
-	pause_continue();
+	pause_continue(0);
 }
 
 // 保存されているパスを元にユーザー環境変数Pathに追加/レジストリに反映する関数
@@ -163,7 +164,7 @@ void set_env() {
 	int pathCount = load_paths(savedPaths);
 	if (pathCount == 0) {
 		printf("パスが保存されていません。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
@@ -189,7 +190,7 @@ void set_env() {
 
 	if (addedCount == 0) {
 		printf("追加する新しいパスはありませんでした。\n");
-		pause_continue();
+		pause_continue(0);
 		return;
 	}
 
@@ -214,7 +215,7 @@ void set_env() {
 	}
 	RegCloseKey(hKey);
 
-	pause_continue();
+	pause_continue(0);
 }
 
 int main() {
@@ -222,7 +223,7 @@ int main() {
 	SetConsoleOutputCP(65001);
 	SetConsoleCP(65001);
 
-	int menuChoice;
+	char menuChoice;
 
 	while (1) {
 		clear_screen();
@@ -231,21 +232,24 @@ int main() {
 		printf("1: パス保存\n");
 		printf("2: パス一覧表示/削除\n");
 		printf("3: 環境変数に登録\n\n");
-		printf("0: 終了\n");
+		printf("q: 終了\n");
 		printf("--------------------------------\n");
-		printf("選択してください: ");
+		printf("> ");
 
-		if (scanf("%d", &menuChoice) != 1) {
+		if (scanf("%1c", &menuChoice) != 1) {
 			clear_input_buffer();
 			continue;
 		}
 
 		switch (menuChoice) {
-			case 1: add_path(); break;
-			case 2: list_and_delete_paths(); break;
-			case 3: set_env(); break;
-			case 0: return 0;
-			default: printf("無効な選択です。\n"); pause_continue();
+			case '1': add_path(); break;
+			case '2': list_and_delete_paths(); break;
+			case '3': set_env(); break;
+			case '\n': break;
+			case 'q': return 0;
+			default:
+				printf("\n無効な選択です。\n");
+				pause_continue(1);
 		}
 	}
 }
