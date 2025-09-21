@@ -5,6 +5,7 @@
 
 #define MAX_LINE  260	// 1行当たりの最大長
 #define MAX_PATHS 100	// 保存できる最大パス数
+#define PATHSFILE "paths.txt"
 
 // ターミナルをクリアする関数
 void clear_screen() {
@@ -31,7 +32,7 @@ void trim(char *str) {
 
 // ファイルから全てのパスを読み込む関数
 int load_paths(char savedPaths[MAX_PATHS][MAX_LINE]) {
-	FILE *fp = fopen("paths.txt", "r"); // ファイルを読み込みモードで開く
+	FILE *fp = fopen(PATHSFILE, "r"); // ファイルを読み込みモードで開く
 	if (!fp) return 0;
 
 	int pathCount = 0;
@@ -45,7 +46,7 @@ int load_paths(char savedPaths[MAX_PATHS][MAX_LINE]) {
 
 // パスをファイルに保存する関数
 void save_paths(char savedPaths[MAX_PATHS][MAX_LINE], int pathCount) {
-	FILE *fp = fopen("paths.txt", "w"); // ファイルを書き込みモードで開く
+	FILE *fp = fopen(PATHSFILE, "w"); // ファイルを書き込みモードで開く
 	if (!fp) {
 		printf("ファイルの書き込みに失敗しました。\n");
 		return;
@@ -55,6 +56,9 @@ void save_paths(char savedPaths[MAX_PATHS][MAX_LINE], int pathCount) {
 		fprintf(fp, "%s\n", savedPaths[i]);
 	}
 	fclose(fp);
+
+	// 隠しファイル属性を付与
+	SetFileAttributes(PATHSFILE, FILE_ATTRIBUTE_HIDDEN);
 }
 
 // パスを追加する関数
@@ -73,7 +77,7 @@ void add_path() {
 		return;
 	}
 
-	FILE *fp = fopen("paths.txt", "a"); // ファイルを追記モードで開く
+	FILE *fp = fopen(PATHSFILE, "a"); // ファイルを追記モードで開く
 	if (!fp) {
 		printf("ファイルを開けません。\n");
 		pause_continue(0);
@@ -81,10 +85,15 @@ void add_path() {
 	}
 	fprintf(fp, "%s\n", newPath);
 	fclose(fp);
+
+	// 隠しファイル属性を付与
+	SetFileAttributes(PATHSFILE, FILE_ATTRIBUTE_HIDDEN);
+
 	printf("\n[ %s ] を保存しました。\n", newPath);
 	pause_continue(0);
 }
 
+// パスの一覧表示・削除を行う関数
 void list_and_delete_paths() {
 	clear_screen();
 	clear_input_buffer();
